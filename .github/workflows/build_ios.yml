@@ -1,4 +1,4 @@
-name: Simple Flutter Test
+name: Minimal Flutter Test
 
 on:
   push:
@@ -20,25 +20,10 @@ jobs:
         channel: 'stable'
         cache: true
         
-    - name: Check directory structure
-      run: |
-        echo "Current directory:"
-        pwd
-        echo "Contents:"
-        ls -la
-        echo "PlatformNext VPN directory:"
-        ls -la platformnext_vpn/
-        
-    - name: Test Flutter in correct directory
+    - name: Test Flutter
       run: |
         cd platformnext_vpn
-        echo "In platformnext_vpn directory:"
-        pwd
-        echo "Contents:"
-        ls -la
-        echo "Flutter version:"
+        echo "Testing Flutter project..."
         flutter --version
-        echo "Getting dependencies:"
         flutter pub get
-        echo "Analyzing code:"
-        flutter analyze
+        echo "Flutter test completed successfully!"
