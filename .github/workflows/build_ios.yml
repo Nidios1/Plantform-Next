@@ -1,4 +1,4 @@
-name: Minimal Flutter Test
+name: Test Flutter Build
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  test-flutter:
     runs-on: ubuntu-latest
     
     steps:
@@ -20,10 +20,31 @@ jobs:
         channel: 'stable'
         cache: true
         
-    - name: Test Flutter
+    - name: Flutter doctor
+      run: flutter doctor -v
+      
+    - name: Check project structure
+      run: |
+        pwd
+        ls -la
+        echo "Checking if platformnext_vpn directory exists..."
+        ls -la platformnext_vpn/
+        echo "Checking pubspec.yaml..."
+        cat platformnext_vpn/pubspec.yaml
+        echo "Checking if this is a Flutter project..."
+        flutter --version
+      
+    - name: Get dependencies
       run: |
         cd platformnext_vpn
-        echo "Testing Flutter project..."
-        flutter --version
         flutter pub get
-        echo "Flutter test completed successfully!"
+      
+    - name: Analyze code
+      run: |
+        cd platformnext_vpn
+        flutter analyze --no-fatal-infos
+      
+    - name: Run tests
+      run: |
+        cd platformnext_vpn
+        flutter test
