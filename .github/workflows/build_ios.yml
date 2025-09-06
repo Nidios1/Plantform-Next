@@ -1,4 +1,4 @@
-name: Build IPA for eSign
+name: Build iOS IPA (Simple - No Signing)
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-ipa:
+  build-ios:
     runs-on: macos-latest
     
     steps:
@@ -30,41 +30,22 @@ jobs:
         cd platformnext_vpn
         flutter pub get
         
-    - name: Build iOS app (Release)
+    - name: Build iOS app
       run: |
         cd platformnext_vpn
-        echo "Building iOS app for eSign..."
         flutter build ios --no-codesign --release
-        echo "Build completed successfully!"
         
-    - name: Create unsigned IPA
+    - name: Create IPA
       run: |
         cd platformnext_vpn/ios
-        echo "Creating unsigned IPA for eSign..."
-        
-        # Create Payload directory
+        # Create IPA structure
         mkdir -p Payload
-        
-        # Copy the built app to Payload
         cp -r build/ios/iphoneos/Runner.app Payload/
+        zip -r platformnext_vpn.ipa Payload/
         
-        # Create IPA file
-        zip -r platformnext_vpn_unsigned.ipa Payload/
-        
-        # Show file info
-        ls -la *.ipa
-        echo "IPA created: platformnext_vpn_unsigned.ipa"
-        
-    - name: Upload IPA for eSign
+    - name: Upload IPA artifact
       uses: actions/upload-artifact@v4
       with:
-        name: platformnext-vpn-unsigned-ipa
-        path: platformnext_vpn/ios/platformnext_vpn_unsigned.ipa
+        name: platformnext-vpn-ipa
+        path: platformnext_vpn/ios/*.ipa
         retention-days: 30
-        
-    - name: Build completed
-      run: |
-        echo "✅ IPA build completed successfully!"
-        echo "📱 Download the IPA from Artifacts section"
-        echo "🔐 Use eSign on your phone to sign with personal certificate"
-        echo "📲 Install the signed IPA on your device"
