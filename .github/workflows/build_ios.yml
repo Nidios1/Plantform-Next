@@ -38,10 +38,36 @@ jobs:
     - name: Create IPA
       run: |
         cd platformnext_vpn/ios
+        echo "Checking build directory structure..."
+        find . -name "Runner.app" -type d
+        echo "Listing build directory..."
+        ls -la build/ios/iphoneos/ || echo "build/ios/iphoneos not found"
+        echo "Listing build directory..."
+        ls -la build/ios/ || echo "build/ios not found"
+        echo "Listing build directory..."
+        ls -la build/ || echo "build not found"
+        
+        # Try different possible paths
+        if [ -d "build/ios/iphoneos/Runner.app" ]; then
+          echo "Found Runner.app in build/ios/iphoneos/"
+          RUNNER_PATH="build/ios/iphoneos/Runner.app"
+        elif [ -d "build/ios/Release-iphoneos/Runner.app" ]; then
+          echo "Found Runner.app in build/ios/Release-iphoneos/"
+          RUNNER_PATH="build/ios/Release-iphoneos/Runner.app"
+        elif [ -d "build/ios/Debug-iphoneos/Runner.app" ]; then
+          echo "Found Runner.app in build/ios/Debug-iphoneos/"
+          RUNNER_PATH="build/ios/Debug-iphoneos/Runner.app"
+        else
+          echo "Runner.app not found, searching..."
+          find . -name "Runner.app" -type d
+          exit 1
+        fi
+        
         # Create IPA structure
         mkdir -p Payload
-        cp -r build/ios/iphoneos/Runner.app Payload/
+        cp -r "$RUNNER_PATH" Payload/
         zip -r platformnext_vpn.ipa Payload/
+        echo "IPA created successfully!"
         
     - name: Upload IPA artifact
       uses: actions/upload-artifact@v4
