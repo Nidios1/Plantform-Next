@@ -42,11 +42,20 @@ jobs:
       run: |
         cd platformnext_vpn
         flutter pub get
+        flutter pub deps
       
     - name: Generate iOS files
       run: |
         cd platformnext_vpn
         flutter precache --ios
+        flutter clean
+        flutter pub get
+        cd ios
+        pod install --repo-update
+        cd ..
+        # Verify app icons are present
+        echo "Checking app icons..."
+        ls -la ios/Runner/Assets.xcassets/AppIcon.appiconset/
         flutter build ios --no-codesign --debug
       
     - name: Setup Xcode
@@ -61,6 +70,11 @@ jobs:
     - name: Build iOS app
       run: |
         cd platformnext_vpn
+        flutter clean
+        flutter pub get
+        cd ios
+        pod install --repo-update
+        cd ..
         flutter build ios --release --no-codesign
         
     - name: Create IPA
