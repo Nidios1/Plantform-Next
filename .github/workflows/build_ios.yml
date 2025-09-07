@@ -92,19 +92,19 @@ jobs:
       run: |
         echo "Skipping iOS signing - building unsigned IPA"
         
-    - name: Build iOS app
-      run: |
-        cd platformnext_vpn
-        flutter clean
-        flutter pub get
-        cd ios
-        # Clean pods and reinstall with updated deployment target
-        rm -rf Pods/
-        rm -f Podfile.lock
-        pod install --repo-update
-        cd ..
-        # Build for simulator to avoid code signing issues
-        flutter build ios --simulator --release
+     - name: Build iOS app
+       run: |
+         cd platformnext_vpn
+         flutter clean
+         flutter pub get
+         cd ios
+         # Clean pods and reinstall with updated deployment target
+         rm -rf Pods/
+         rm -f Podfile.lock
+         pod install --repo-update
+         cd ..
+         # Build for simulator in debug mode (release not supported for simulator)
+         flutter build ios --simulator --debug
         
     - name: Create IPA
       run: |
@@ -116,21 +116,18 @@ jobs:
         echo "Listing build directory..."
         ls -la build/ || echo "build not found"
         
-        # Try different possible paths for simulator builds
-        if [ -d "build/ios/Release-iphonesimulator/Runner.app" ]; then
-          echo "Found Runner.app in build/ios/Release-iphonesimulator/"
-          RUNNER_PATH="build/ios/Release-iphonesimulator/Runner.app"
-        elif [ -d "build/ios/Debug-iphonesimulator/Runner.app" ]; then
-          echo "Found Runner.app in build/ios/Debug-iphonesimulator/"
-          RUNNER_PATH="build/ios/Debug-iphonesimulator/Runner.app"
-        elif [ -d "build/ios/iphonesimulator/Runner.app" ]; then
-          echo "Found Runner.app in build/ios/iphonesimulator/"
-          RUNNER_PATH="build/ios/iphonesimulator/Runner.app"
-        else
-          echo "Runner.app not found, searching..."
-          find . -name "Runner.app" -type d
-          exit 1
-        fi
+         # Try different possible paths for simulator builds (debug mode)
+         if [ -d "build/ios/Debug-iphonesimulator/Runner.app" ]; then
+           echo "Found Runner.app in build/ios/Debug-iphonesimulator/"
+           RUNNER_PATH="build/ios/Debug-iphonesimulator/Runner.app"
+         elif [ -d "build/ios/iphonesimulator/Runner.app" ]; then
+           echo "Found Runner.app in build/ios/iphonesimulator/"
+           RUNNER_PATH="build/ios/iphonesimulator/Runner.app"
+         else
+           echo "Runner.app not found, searching..."
+           find . -name "Runner.app" -type d
+           exit 1
+         fi
         
         # Create IPA structure
         mkdir -p Payload
