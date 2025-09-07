@@ -56,7 +56,8 @@ jobs:
         # Verify app icons are present
         echo "Checking app icons..."
         ls -la ios/Runner/Assets.xcassets/AppIcon.appiconset/
-        flutter build ios --no-codesign --debug
+        # Build for simulator to avoid code signing issues
+        flutter build ios --simulator --debug
       
     - name: Setup Xcode
       uses: maxim-lobanov/setup-xcode@v1
@@ -75,7 +76,8 @@ jobs:
         cd ios
         pod install --repo-update
         cd ..
-        flutter build ios --release --no-codesign
+        # Build for simulator to avoid code signing issues
+        flutter build ios --simulator --release
         
     - name: Create IPA
       run: |
@@ -83,22 +85,20 @@ jobs:
         echo "Checking build directory structure..."
         find . -name "Runner.app" -type d
         echo "Listing build directory..."
-        ls -la build/ios/iphoneos/ || echo "build/ios/iphoneos not found"
-        echo "Listing build directory..."
         ls -la build/ios/ || echo "build/ios not found"
         echo "Listing build directory..."
         ls -la build/ || echo "build not found"
         
-        # Try different possible paths
-        if [ -d "build/ios/iphoneos/Runner.app" ]; then
-          echo "Found Runner.app in build/ios/iphoneos/"
-          RUNNER_PATH="build/ios/iphoneos/Runner.app"
-        elif [ -d "build/ios/Release-iphoneos/Runner.app" ]; then
-          echo "Found Runner.app in build/ios/Release-iphoneos/"
-          RUNNER_PATH="build/ios/Release-iphoneos/Runner.app"
-        elif [ -d "build/ios/Debug-iphoneos/Runner.app" ]; then
-          echo "Found Runner.app in build/ios/Debug-iphoneos/"
-          RUNNER_PATH="build/ios/Debug-iphoneos/Runner.app"
+        # Try different possible paths for simulator builds
+        if [ -d "build/ios/Release-iphonesimulator/Runner.app" ]; then
+          echo "Found Runner.app in build/ios/Release-iphonesimulator/"
+          RUNNER_PATH="build/ios/Release-iphonesimulator/Runner.app"
+        elif [ -d "build/ios/Debug-iphonesimulator/Runner.app" ]; then
+          echo "Found Runner.app in build/ios/Debug-iphonesimulator/"
+          RUNNER_PATH="build/ios/Debug-iphonesimulator/Runner.app"
+        elif [ -d "build/ios/iphonesimulator/Runner.app" ]; then
+          echo "Found Runner.app in build/ios/iphonesimulator/"
+          RUNNER_PATH="build/ios/iphonesimulator/Runner.app"
         else
           echo "Runner.app not found, searching..."
           find . -name "Runner.app" -type d
@@ -108,13 +108,13 @@ jobs:
         # Create IPA structure
         mkdir -p Payload
         cp -r "$RUNNER_PATH" Payload/
-        zip -r platformnext_vpn.ipa Payload/
-        echo "IPA created successfully!"
+        zip -r platformnext_vpn_simulator.ipa Payload/
+        echo "Simulator IPA created successfully!"
           
     - name: Upload IPA artifact
       uses: actions/upload-artifact@v4
       with:
-        name: platformnext-vpn-ipa
+        name: platformnext-vpn-simulator-ipa
         path: platformnext_vpn/*.ipa
         retention-days: 30
         
