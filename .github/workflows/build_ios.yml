@@ -35,32 +35,13 @@ jobs:
         cd "$FLUTTER_DIR"
         
         echo "=== Flutter doctor ==="
-        flutter doctor -v
-        
-        echo "=== Clean Flutter project ==="
-        flutter clean
+        flutter doctor
         
         echo "=== Get dependencies ==="
         flutter pub get
         
-        echo "=== Clean iOS build ==="
-        cd ios
-        rm -rf build/
-        rm -rf Pods/
-        rm -rf Podfile.lock
-        rm -rf .symlinks/
-        rm -rf Flutter/Flutter.framework
-        rm -rf Flutter/Flutter.podspec
-        
-        echo "=== Install CocoaPods ==="
-        pod install --repo-update
-        
-        echo "=== Build for iOS simulator (debug mode) ==="
-        cd ..
-        flutter build ios --simulator --debug --verbose
-        
-        echo "=== Build for iOS device (no code signing) ==="
-        flutter build ios --release --no-codesign --verbose
+        echo "=== Build for iOS device (for IPA) ==="
+        flutter build ios --release --no-codesign
         
         echo "=== Build completed successfully! ==="
         
@@ -96,10 +77,10 @@ jobs:
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: ios-app-build
+        name: ios-ipa-build
         path: |
-          */build/ios/
-          build/ios/
           */ios/*.ipa
           ios/*.ipa
+          */build/ios/
+          build/ios/
         retention-days: 7
