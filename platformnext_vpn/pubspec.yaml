@@ -1,0 +1,67 @@
+name: platformnext_vpn
+description: Platform Next - Unlimited VPN Flutter App
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # UI & Icons
+  cupertino_icons: ^1.0.6
+  
+  # State Management
+  provider: ^6.1.1
+  
+  # Network & HTTP
+  http: ^1.2.0
+  connectivity_plus: ^6.0.3
+  
+  # Storage
+  shared_preferences: ^2.2.3
+  
+  # Device & System
+  device_info_plus: ^10.1.0
+  package_info_plus: ^8.0.0
+  path_provider: ^2.1.2
+  
+  # Media & Files
+  image_picker: ^1.0.7
+  file_picker: ^8.0.0+1
+  share_plus: ^7.2.2
+  
+  # QR Code
+  qr_code_scanner: ^1.0.1
+  
+  # Permissions
+  permission_handler: ^11.3.1
+  
+  # URL Launcher
+  url_launcher: ^6.2.5
+  
+  # Keyboard
+  flutter_keyboard_visibility: ^5.4.0
+
+dev_dependencies:
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  
+  assets:
+    - assets/
+    - assets/connection/
+    - assets/core/
+    - assets/custom/
+    - assets/flags/
+    - assets/fonts/
+    - assets/images/
+  
+  fonts:
+    - family: Emoji
+      fonts:
+        - asset: assets/fonts/Emoji.ttf
