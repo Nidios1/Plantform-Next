@@ -1,131 +1,58 @@
-name: Build iOS IPA
+name: Build iOS App
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, master ]
   workflow_dispatch:
-  schedule:
-    - cron: '0 0 * * *'  # Run daily at midnight
 
 jobs:
   build-ios:
     runs-on: macos-latest
     
     steps:
-    - name: Checkout code
+    - name: Checkout repository
       uses: actions/checkout@v4
       
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.27.0'
+        flutter-version: '3.24.0'
         channel: 'stable'
-        cache: true
         
-    - name: Flutter doctor
-      run: flutter doctor -v
-      
-    - name: Check project structure
-      run: |
-        pwd
-        ls -la
-        echo "Checking if platformnext_vpn directory exists..."
-        ls -la platformnext_vpn/
-        echo "Checking pubspec.yaml..."
-        cat platformnext_vpn/pubspec.yaml
-        echo "Checking if this is a Flutter project..."
-        flutter --version
-      
     - name: Get dependencies
-      run: |
-        cd platformnext_vpn
-        flutter clean
-        flutter pub get
-        flutter pub deps
+      run: flutter pub get
       
     - name: Setup Xcode
       uses: maxim-lobanov/setup-xcode@v1
       with:
-        xcode-version: '16.4.0'
+        xcode-version: latest-stable
         
     - name: Prepare iOS build
       run: |
-        cd platformnext_vpn
-        flutter precache --ios
         cd ios
-        # Clean pods and reinstall with updated deployment target
-        rm -rf Pods/
-        rm -f Podfile.lock
         pod install --repo-update
-        cd ..
-        # Create app icons if they don't exist
-        echo "Checking app icons..."
-        if [ ! -f "ios/Runner/Assets.xcassets/AppIcon.appiconset/icon-1024.png" ]; then
-          echo "Creating app icons..."
-          mkdir -p ios/Runner/Assets.xcassets/AppIcon.appiconset/
-          # Create placeholder icons (will be replaced with proper ones)
-          touch ios/Runner/Assets.xcassets/AppIcon.appiconset/icon-20@2x.png
-          touch ios/Runner/Assets.xcassets/AppIcon.appiconset/icon-20@3x.png
-          touch ios/Runner/Assets.xcassets/AppIcon.appiconset/icon-29@2x.png
-          touch ios/Runner/Assets.xcassets/AppIcon.appiconset/icon-29@3x.png
-          touch ios/Runner/Assets.xcassets/AppIcon.appiconset/icon-40@2x.png
-          touch ios/Runner/Assets.xcassets/AppIcon.appiconset/icon-40@3x.png
-          touch ios/Runner/Assets.xcassets/AppIcon.appiconset/icon-60@2x.png
-          touch ios/Runner/Assets.xcassets/AppIcon.appiconset/icon-60@3x.png
-          touch ios/Runner/Assets.xcassets/AppIcon.appiconset/icon-20.png
-          touch ios/Runner/Assets.xcassets/AppIcon.appiconset/icon-29.png
-          touch ios/Runner/Assets.xcassets/AppIcon.appiconset/icon-40.png
-          touch ios/Runner/Assets.xcassets/AppIcon.appiconset/icon-76@2x.png
-          touch ios/Runner/Assets.xcassets/AppIcon.appiconset/icon-83.5@2x.png
-          touch ios/Runner/Assets.xcassets/AppIcon.appiconset/icon-1024.png
-        fi
-        ls -la ios/Runner/Assets.xcassets/AppIcon.appiconset/
         
     - name: Build iOS app
-      run: |
-        cd platformnext_vpn
-        # Build for simulator in debug mode (release not supported for simulator)
-        flutter build ios --simulator --debug
-        
+      run: flutter build ios --release --no-codesign
+      
     - name: Create IPA
       run: |
-        cd platformnext_vpn
-        echo "Checking build directory structure..."
-        find . -name "Runner.app" -type d
-        echo "Listing build directory..."
-        ls -la build/ios/ || echo "build/ios not found"
-        echo "Listing build directory..."
-        ls -la build/ || echo "build not found"
-        
-         # Try different possible paths for simulator builds (debug mode)
-         if [ -d "build/ios/Debug-iphonesimulator/Runner.app" ]; then
-           echo "Found Runner.app in build/ios/Debug-iphonesimulator/"
-           RUNNER_PATH="build/ios/Debug-iphonesimulator/Runner.app"
-         elif [ -d "build/ios/iphonesimulator/Runner.app" ]; then
-           echo "Found Runner.app in build/ios/iphonesimulator/"
-           RUNNER_PATH="build/ios/iphonesimulator/Runner.app"
-         else
-           echo "Runner.app not found, searching..."
-           find . -name "Runner.app" -type d
-           exit 1
-         fi
-        
-        # Create IPA structure
-        mkdir -p Payload
-        cp -r "$RUNNER_PATH" Payload/
-        zip -r platformnext_vpn_simulator.ipa Payload/
-        echo "Simulator IPA created successfully!"
+        cd ios
+        xcodebuild -workspace Runner.xcworkspace \
+          -scheme Runner \
+          -configuration Release \
+          -destination generic/platform=iOS \
+          -archivePath Runner.xcarchive \
+          archive
+        xcodebuild -exportArchive \
+          -archivePath Runner.xcarchive \
+          -exportPath . \
+          -exportOptionsPlist ExportOptions.plist
           
     - name: Upload IPA artifact
       uses: actions/upload-artifact@v4
       with:
-        name: platformnext-vpn-simulator-ipa
-        path: platformnext_vpn/*.ipa
-        retention-days: 30
-        
-    - name: Build completed
-      run: |
-        echo "iOS build completed successfully!"
-        echo "IPA file is available in the artifacts section"
+        name: ios-app
+        path: ios/*.ipa
