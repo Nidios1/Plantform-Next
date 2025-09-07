@@ -39,8 +39,8 @@ jobs:
         echo "=== Get dependencies ==="
         flutter pub get
         
-        echo "=== Build for iOS simulator (no code signing) ==="
-        flutter build ios --simulator --release --no-codesign
+        echo "=== Build for iOS simulator (debug mode) ==="
+        flutter build ios --simulator --debug
         
         echo "=== Build for iOS device (no code signing) ==="
         flutter build ios --release --no-codesign
