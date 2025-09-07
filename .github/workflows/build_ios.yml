@@ -41,6 +41,7 @@ jobs:
     - name: Get dependencies
       run: |
         cd platformnext_vpn
+        flutter clean
         flutter pub get
         flutter pub deps
       
