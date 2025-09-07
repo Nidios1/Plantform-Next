@@ -70,7 +70,9 @@ jobs:
           -archivePath Runner.xcarchive \
           -exportPath . \
           -exportOptionsPlist ExportOptions.plist \
-          -allowProvisioningUpdates
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO
         
         echo "=== IPA file created successfully! ==="
         
