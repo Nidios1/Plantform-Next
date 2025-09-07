@@ -55,7 +55,26 @@ jobs:
         # Find the Flutter project directory
         FLUTTER_DIR=$(find . -name "pubspec.yaml" -exec dirname {} \; | head -1)
         echo "Using Flutter project in: $FLUTTER_DIR"
-        cd "$FLUTTER_DIR/ios"
+        cd "$FLUTTER_DIR"
+        
+        # Regenerate Flutter configuration files for macOS
+        echo "Regenerating Flutter configuration files..."
+        flutter clean
+        flutter pub get
+        
+        # Update Generated.xcconfig with correct Flutter root for macOS
+        FLUTTER_ROOT_PATH=$(which flutter | sed 's|/bin/flutter||')
+        echo "Flutter root path: $FLUTTER_ROOT_PATH"
+        
+        # Update the Generated.xcconfig file
+        sed -i.bak "s|FLUTTER_ROOT=.*|FLUTTER_ROOT=$FLUTTER_ROOT_PATH|" ios/Flutter/Generated.xcconfig
+        sed -i.bak "s|FLUTTER_APPLICATION_PATH=.*|FLUTTER_APPLICATION_PATH=$(pwd)|" ios/Flutter/Generated.xcconfig
+        
+        echo "Updated Generated.xcconfig:"
+        cat ios/Flutter/Generated.xcconfig
+        
+        # Now run pod install
+        cd ios
         pod install --repo-update
         
     - name: Build iOS app
