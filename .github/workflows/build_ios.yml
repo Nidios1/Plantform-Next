@@ -18,13 +18,14 @@ jobs:
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.24.0'
+        flutter-version: '3.27.0'
         channel: 'stable'
+        cache: true
         
     - name: Setup Xcode
       uses: maxim-lobanov/setup-xcode@v1
       with:
-        xcode-version: latest-stable
+        xcode-version: '15.4'
         
     - name: Build Flutter app
       run: |
@@ -34,16 +35,32 @@ jobs:
         cd "$FLUTTER_DIR"
         
         echo "=== Flutter doctor ==="
-        flutter doctor
+        flutter doctor -v
+        
+        echo "=== Clean Flutter project ==="
+        flutter clean
         
         echo "=== Get dependencies ==="
         flutter pub get
         
+        echo "=== Clean iOS build ==="
+        cd ios
+        rm -rf build/
+        rm -rf Pods/
+        rm -rf Podfile.lock
+        rm -rf .symlinks/
+        rm -rf Flutter/Flutter.framework
+        rm -rf Flutter/Flutter.podspec
+        
+        echo "=== Install CocoaPods ==="
+        pod install --repo-update
+        
         echo "=== Build for iOS simulator (debug mode) ==="
-        flutter build ios --simulator --debug
+        cd ..
+        flutter build ios --simulator --debug --verbose
         
         echo "=== Build for iOS device (no code signing) ==="
-        flutter build ios --release --no-codesign
+        flutter build ios --release --no-codesign --verbose
         
         echo "=== Build completed successfully! ==="
         
